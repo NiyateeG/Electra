@@ -1,2 +1,2 @@
-# VOTA
+# Electra
 Election Management System Frontend
