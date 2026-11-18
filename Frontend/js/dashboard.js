@@ -250,7 +250,24 @@
   async function resultsPage() {
     const elections = await api().get('/elections');
     const published = elections.filter((e) => e.status === 'Published');
-    $('result-election').innerHTML = '<option value="">Select published election</option>' + options(published, (e) => `${e.name} (${dateLabel(e.election_date)})`);
+    const electionSelect = $('result-election');
+    const resultsForm = $('results-form');
+    const submitButton = resultsForm?.querySelector('[type="submit"]');
+
+    if (published.length === 0) {
+      electionSelect.innerHTML = '<option value="">No elections</option>';
+      electionSelect.disabled = true;
+      electionSelect.required = false;
+      if (submitButton) submitButton.disabled = true;
+      $('result-summary').textContent = 'No elections have been published yet.';
+      setRows('results-table', '', 'No elections have been published yet.', 4);
+      return;
+    }
+
+    electionSelect.disabled = false;
+    electionSelect.required = true;
+    if (submitButton) submitButton.disabled = false;
+    electionSelect.innerHTML = '<option value="">Select published election</option>' + options(published, (e) => `${e.name} (${dateLabel(e.election_date)})`);
     submit('results-form', async () => {
       const result = await api().get(`/results/${value('result-election')}`);
       const rows = result.results || [];

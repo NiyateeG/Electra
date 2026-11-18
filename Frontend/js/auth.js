@@ -13,21 +13,21 @@
   window.EMS_AUTH_READY = (async () => {
     if (!expectedRole) return null;
     if (!localStorage.getItem('ems_token')) {
-      location.replace('login.html');
+      location.replace(expectedRole ? `login.html?role=${encodeURIComponent(expectedRole)}` : 'login.html');
       return null;
     }
     try {
       const user = await window.EMS_API.get('/auth/me');
       if (user.role !== expectedRole) {
         window.EMS_API.clearToken();
-        location.replace('login.html');
+        location.replace(`login.html?role=${encodeURIComponent(expectedRole)}`);
         return null;
       }
       localStorage.setItem('ems_user', JSON.stringify(user));
       return user;
     } catch (err) {
       window.EMS_API.clearToken();
-      if (location.pathname.split('/').pop() !== 'login.html') location.replace('login.html');
+      if (location.pathname.split('/').pop() !== 'login.html') location.replace(`login.html?role=${encodeURIComponent(expectedRole)}`);
       return null;
     }
   })();
@@ -35,6 +35,11 @@
   document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
+      const requestedRole = new URLSearchParams(location.search).get('role');
+      const roleSelect = document.getElementById('login-role');
+      if (requestedRole && roleSelect && Array.from(roleSelect.options).some((option) => option.value === requestedRole || option.textContent.trim() === requestedRole)) {
+        roleSelect.value = requestedRole;
+      }
       loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (!loginForm.reportValidity()) return;
